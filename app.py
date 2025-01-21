@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 # Load YOLO model
-model = YOLO(r"C:\Users\aditi\Desktop\sign-language-local-webcam\best.pt")
+model = YOLO('best.pt')
 
 # Check if the webcam is accessible
 def check_webcam():
