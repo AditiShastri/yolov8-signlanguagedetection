@@ -113,16 +113,24 @@ def main():
                 if len(results.boxes) == 0:
                     st.warning("No hand signs detected. Please try again with a clearer view.")
                 else:
+                    detected_signs = []
                     for box in results.boxes:
                         confidence = float(box.conf[0])
                         class_id = int(box.cls[0])
                         class_name = results.names[class_id]
+                        detected_signs.append((class_name, confidence))
+                        
+                        # Display each detection in detail
                         st.markdown(f"""
                         <div style='padding: 15px; border-radius: 10px; background-color: #f0f2f6; margin: 10px 0;'>
                             <strong>Sign:</strong> {class_name}<br>
                             <strong>Confidence:</strong> {confidence:.1%}
                         </div>
                         """, unsafe_allow_html=True)
+                    
+                    # Highlight most confident detection
+                    most_confident_sign = max(detected_signs, key=lambda x: x[1])
+                    st.success(f"✅ **Detected Sign:** {most_confident_sign[0]} (Confidence: {most_confident_sign[1]:.1%})")
             except Exception as e:
                 st.error("❌ Error processing the image.")
                 st.error(f"Details: {str(e)}")
