@@ -3,7 +3,6 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 from PIL import Image
-import io
 
 def load_model():
     """Load YOLOv8 model from best.pt in same directory"""
@@ -36,55 +35,67 @@ def draw_boxes(img_array, results):
     
     return img_array
 
+def show_about_section():
+    """Display an about section with app details"""
+    st.sidebar.title("About SpeakSigns")
+    st.sidebar.info("""
+    **SpeakSigns** is a cutting-edge app designed to translate hand signs into text, promoting digital inclusivity for the Deaf and Hard of Hearing community.
+    
+    **Features**:
+    - Real-time hand sign detection using YOLOv8
+    - User-friendly mobile interface
+    - Supports multiple hand sign classifications
+    
+    Developed as part of the project on **Advanced Sign Language-to-Text Translation for Digital Inclusivity**.
+    """)
+
 def show_permission_info():
     """Display permission information and instructions"""
     st.info("""
     ### 📸 Camera Permission Required
     
-    This app needs access to your camera to detect hand signs. When you click 'Take Photo':
+    This app requires camera access to detect hand signs. When you click 'Take Photo':
     
-    1. Your browser will ask for camera permission
-    2. Please click 'Allow' or 'Accept' when prompted
-    3. If you accidentally denied permission:
-        - Look for a camera icon in your address bar
-        - Click it to manage permissions
-        - Or refresh the page to try again
-        
-    Your privacy is important! The app only accesses your camera when you click 'Take Photo'.
+    1. Your browser will ask for camera permission.
+    2. Click 'Allow' or 'Accept' when prompted.
+    3. If denied, manage permissions via the browser settings or refresh the page.
     """)
 
 def main():
     st.set_page_config(
-        page_title="Hand Sign Detector",
+        page_title="SpeakSigns",
         layout="centered",
-        initial_sidebar_state="collapsed"
+        initial_sidebar_state="expanded",
     )
     
-    st.title("Hand Sign Detection")
+    st.title("🔤 SpeakSigns: Hand Sign Detection")
+    
+    # About section in the sidebar
+    show_about_section()
     
     # Load model
     model = load_model()
     
     if model is None:
-        st.error("Please ensure 'best.pt' is in the same directory as this script")
+        st.error("Ensure 'best.pt' is in the same directory as this script.")
         return
     
-    # Show permission information first
+    # Show camera permission info
     show_permission_info()
     
     # Add a divider
     st.markdown("---")
     
-    # Create camera input with clear instructions
-    st.markdown("### 📱 Take a Photo")
+    # Camera input
+    st.markdown("### 📷 Take a Photo")
     st.markdown("Position your hand sign in the camera view and take a photo.")
     img_file = st.camera_input("Enable camera", key="camera")
     
     if img_file is not None:
         image = Image.open(img_file)
         
-        # Add detect button with clear call to action
-        detect_button = st.button("🔍 Analyze Hand Sign", type="primary")
+        # Analyze button
+        detect_button = st.button("🔍 Analyze Hand Sign")
         
         if detect_button:
             try:
@@ -99,27 +110,21 @@ def main():
                 # Display detection details
                 st.subheader("📊 Detection Results:")
                 
-                # Check if any signs were detected
                 if len(results.boxes) == 0:
-                    st.warning("No hand signs detected. Please try taking another photo with a clearer view of your hand sign.")
-                
-                for box in results.boxes:
-                    confidence = float(box.conf[0])
-                    class_id = int(box.cls[0])
-                    class_name = results.names[class_id]
-                    
-                    st.markdown(f"""
-                    <div style='padding: 15px; border-radius: 10px; background-color: #f0f2f6; margin: 10px 0;'>
-                        <strong>Sign:</strong> {class_name}<br>
-                        <strong>Confidence:</strong> {confidence:.1%}
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                # Add retry suggestion
-                st.markdown("Not the result you expected? Try taking another photo with different lighting or angle.")
-                
+                    st.warning("No hand signs detected. Please try again with a clearer view.")
+                else:
+                    for box in results.boxes:
+                        confidence = float(box.conf[0])
+                        class_id = int(box.cls[0])
+                        class_name = results.names[class_id]
+                        st.markdown(f"""
+                        <div style='padding: 15px; border-radius: 10px; background-color: #f0f2f6; margin: 10px 0;'>
+                            <strong>Sign:</strong> {class_name}<br>
+                            <strong>Confidence:</strong> {confidence:.1%}
+                        </div>
+                        """, unsafe_allow_html=True)
             except Exception as e:
-                st.error("❌ Error processing image. Please try taking another photo.")
+                st.error("❌ Error processing the image.")
                 st.error(f"Details: {str(e)}")
 
 if __name__ == "__main__":
